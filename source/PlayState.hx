@@ -5,6 +5,8 @@ import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.math.FlxMath;
 import flixel.math.FlxVelocity;
+import flixel.system.FlxSound;
+import flixel.system.ui.FlxSoundTray;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxTimer;
@@ -16,9 +18,11 @@ class PlayState extends FlxState
 
 	var kissing:Kissing;
 
+	var sndStretch:FlxSound;
+
 	override public function create()
 	{
-		FlxG.sound.playMusic("assets/music/kissykiss.ogg", 1);
+		FlxG.sound.playMusic("assets/music/kissykiss.ogg", 0.8);
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic("assets/images/bg" + FlxG.random.int(1, 3) + ".png", true, 300, 177);
 		bg.animation.add("idle", [0, 1, 2], 6);
@@ -39,6 +43,8 @@ class PlayState extends FlxState
 
 		FlxG.camera.followLerp = 0.02;
 
+		sndStretch = new FlxSound().loadEmbedded("assets/sounds/stretch.ogg");
+		FlxG.sound.defaultSoundGroup.add(sndStretch);
 		super.create();
 	}
 
@@ -49,10 +55,14 @@ class PlayState extends FlxState
 	{
 		super.update(elapsed);
 
-		var btnKiss:Bool = FlxG.keys.pressed.SPACE;
-		var btnKissP:Bool = FlxG.keys.justPressed.SPACE;
+		var btnKiss:Bool = FlxG.keys.pressed.SPACE || FlxG.mouse.pressed;
+		var btnKissP:Bool = FlxG.keys.justPressed.SPACE || FlxG.mouse.justPressed;
 
-		if (btnKissP) {}
+		if (btnKissP)
+		{
+			if (!isKissing)
+				sndStretch.play(true, FlxG.random.float(0, 0.2));
+		}
 
 		if (btnKiss)
 		{
@@ -62,6 +72,9 @@ class PlayState extends FlxState
 		}
 		else
 		{
+			if (sndStretch.playing)
+				sndStretch.pause();
+
 			if (kissTmr > 0)
 				kissTmr -= elapsed;
 
@@ -76,19 +89,32 @@ class PlayState extends FlxState
 		{
 			if (kissTmr > 0.6 || isKissing)
 			{
+				sndStretch.pause();
+
 				kissing.screenCenter(X);
 				kissing.y = personL.y;
 				FlxG.camera.scroll.y = kissing.y + 20;
-				isKissing = true;
 
-				new FlxTimer().start(0.9, function(_)
+				if (!isKissing)
 				{
-					isKissing = false;
-					kissTmr = 0;
+					new FlxTimer().start(0.9, function(_)
+					{
+						isKissing = false;
+						kissTmr = 0;
 
-					personL.regenTween();
-					personR.regenTween();
-				});
+						personL.regenTween();
+						personR.regenTween();
+					});
+
+					if (personL.y < personR.y - 20)
+						kissing.animation.play("head");
+					else if (personL.y > personR.y + 20)
+						kissing.animation.play("body");
+					else
+						kissing.animation.play("idle");
+				}
+
+				isKissing = true;
 			}
 		}
 
