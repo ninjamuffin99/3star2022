@@ -9,6 +9,8 @@ class PlayState extends FlxState
 	var personL:Kisser;
 	var personR:Kisser;
 
+	var kissing:Kissing;
+
 	override public function create()
 	{
 		FlxG.sound.playMusic("assets/music/kissykiss.ogg", 1);
@@ -23,11 +25,26 @@ class PlayState extends FlxState
 		add(personL);
 		add(personR);
 
+		kissing = new Kissing();
+		add(kissing);
+
 		super.create();
 	}
 
 	override public function update(elapsed:Float)
 	{
 		super.update(elapsed);
+
+		var btnKiss:Bool = FlxG.keys.pressed.SPACE;
+		var btnKissP:Bool = FlxG.keys.justPressed.SPACE;
+
+		if (btnKissP)
+		{
+			kissing.screenCenter();
+			kissing.y = personL.y;
+		}
+
+		personL.visible = personR.visible = !btnKiss;
+		kissing.visible = btnKiss;
 	}
 }
