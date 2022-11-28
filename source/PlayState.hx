@@ -4,8 +4,10 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.math.FlxMath;
+import flixel.math.FlxVelocity;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
+import flixel.util.FlxTimer;
 
 class PlayState extends FlxState
 {
@@ -40,6 +42,9 @@ class PlayState extends FlxState
 		super.create();
 	}
 
+	var kissTmr:Float = 0;
+	var isKissing:Bool = false;
+
 	override public function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -47,25 +52,49 @@ class PlayState extends FlxState
 		var btnKiss:Bool = FlxG.keys.pressed.SPACE;
 		var btnKissP:Bool = FlxG.keys.justPressed.SPACE;
 
-		if (btnKissP)
-		{
-			kissing.screenCenter(X);
-			kissing.y = personL.y;
-		}
+		if (btnKissP) {}
 
 		if (btnKiss)
 		{
-			FlxG.camera.scroll.y = kissing.y + 20;
+			kissTmr += elapsed;
+			personL.x = FlxMath.lerp(personL.x, personL.getDefaultX() + 20, 0.09);
+			personR.x = FlxMath.lerp(personR.x, personL.getDefaultX() - 20, 0.09);
 		}
 		else
 		{
+			if (kissTmr > 0)
+				kissTmr -= elapsed;
+
+			personL.x = FlxMath.lerp(personL.x, personL.getDefaultX(), 0.7);
+			personR.x = FlxMath.lerp(personR.x, personL.getDefaultX(), 0.7);
+
 			// FlxG.camera.follow(null);
 			FlxG.camera.scroll.set(0, 0);
 		}
 
-		FlxG.camera.zoom = FlxMath.lerp(FlxG.camera.zoom, btnKiss ? 1.3 : 1, 0.1);
+		if (kissTmr > 0)
+		{
+			if (kissTmr > 0.6 || isKissing)
+			{
+				kissing.screenCenter(X);
+				kissing.y = personL.y;
+				FlxG.camera.scroll.y = kissing.y + 20;
+				isKissing = true;
 
-		personL.visible = personR.visible = !btnKiss;
-		kissing.visible = btnKiss;
+				new FlxTimer().start(0.9, function(_)
+				{
+					isKissing = false;
+					kissTmr = 0;
+
+					personL.regenTween();
+					personR.regenTween();
+				});
+			}
+		}
+
+		FlxG.camera.zoom = FlxMath.lerp(FlxG.camera.zoom, isKissing ? 1.3 : 1, 0.1);
+
+		personL.visible = personR.visible = !isKissing;
+		kissing.visible = isKissing;
 	}
 }

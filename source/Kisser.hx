@@ -10,6 +10,8 @@ import flixel.util.FlxDirectionFlags;
 
 class Kisser extends FlxSprite
 {
+	var curTween:FlxTween;
+
 	public function new(facing:FlxDirectionFlags)
 	{
 		super();
@@ -22,9 +24,16 @@ class Kisser extends FlxSprite
 		animation.add("idle", [0, 1, 2], FlxG.random.int(11, 13));
 		animation.play("idle", false, false, FlxG.random.int(0, 2));
 
-		x = facing == LEFT ? FlxG.width * 0.1 : (FlxG.width * 0.9) - width;
-		y = FlxG.height - height;
+		regenTween();
+	}
 
+	public function getDefaultX():Float
+	{
+		return facing == LEFT ? FlxG.width * 0.1 : (FlxG.width * 0.9) - width;
+	}
+
+	public function regenTween()
+	{
 		var classFields:Array<String> = Type.getClassFields(FlxEase);
 		var easeFunctions:Array<EaseFunction> = [];
 
@@ -41,9 +50,11 @@ class Kisser extends FlxSprite
 			// mega maniac bullshit
 			return Reflect.isFunction(Reflect.getProperty(FlxEase, str));
 		});
-		trace(Type.getClassFields(FlxEase));
 
-		FlxTween.tween(this, {y: FlxG.random.int(Std.int(y - 10), Std.int(y - Std.int(FlxG.height * 0.6)))}, FlxG.random.float(0.6, 1.9),
+		x = getDefaultX();
+		y = FlxG.height - (height * FlxG.random.float(0.6, 0.9));
+
+		curTween = FlxTween.tween(this, {y: FlxG.random.int(Std.int(y - 20), Std.int(y - Std.int(FlxG.height * 0.6)))}, FlxG.random.float(0.6, 1.9),
 			{ease: FlxG.random.getObject(easeFunctions), type: PINGPONG});
 	}
 }
