@@ -29,7 +29,7 @@ class Kisser extends FlxSprite
 
 	public function getDefaultX():Float
 	{
-		return facing == LEFT ? FlxG.width * 0.1 : (FlxG.width * 0.9) - width;
+		return facing == LEFT ? FlxG.width * 0.06 : (FlxG.width * 0.94) - width;
 	}
 
 	public function regenTween()
