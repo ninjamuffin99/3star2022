@@ -4,11 +4,15 @@ import Obstacle.ObstacleType;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
+import flixel.effects.FlxFlicker;
+import flixel.graphics.frames.FlxBitmapFont;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
 import flixel.math.FlxVelocity;
 import flixel.system.FlxSound;
 import flixel.system.ui.FlxSoundTray;
+import flixel.text.FlxBitmapText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxTimer;
@@ -23,6 +27,9 @@ class PlayState extends FlxState
 	var kissing:Kissing;
 
 	var sndStretch:FlxSound;
+	var sprLives:FlxSprite;
+	var txtScore:FlxBitmapText;
+	var score:Int = 0;
 
 	override public function create()
 	{
@@ -51,6 +58,27 @@ class PlayState extends FlxState
 
 		FlxG.camera.followLerp = 0.02;
 
+		sprLives = new FlxSprite(2, 2).loadGraphic("assets/images/lives.png", true, 90, 30);
+		sprLives.animation.add('idle', [0, 1, 2], 0);
+		sprLives.animation.play("idle");
+		sprLives.health = 3;
+		add(sprLives);
+
+		var txtLetters:String = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		var fontMonospace = FlxBitmapFont.fromMonospace('assets/images/font.png', txtLetters, FlxPoint.get(30, 30));
+
+		txtScore = new FlxBitmapText(fontMonospace);
+		txtScore.letterSpacing = -8;
+		txtScore.autoUpperCase = true;
+		txtScore.text = "";
+		txtScore.alignment = RIGHT;
+		txtScore.x = FlxG.width - 100;
+		txtScore.setGraphicSize(Std.int(txtScore.width / 2));
+		txtScore.updateHitbox();
+		add(txtScore);
+
+		FlxTween.tween(sprLives.scale, {y: 1.1}, 0.7, {ease: FlxEase.quartInOut, type: PINGPONG});
+
 		sndStretch = new FlxSound().loadEmbedded("assets/sounds/stretch.ogg");
 		FlxG.sound.defaultSoundGroup.add(sndStretch);
 		super.create();
@@ -64,6 +92,15 @@ class PlayState extends FlxState
 	override public function update(elapsed:Float)
 	{
 		super.update(elapsed);
+
+		txtScore.text = Std.string(score);
+
+		if (sprLives.health <= 0)
+		{
+			FlxG.resetGame();
+		}
+
+		sprLives.animation.curAnim.curFrame = Math.round(sprLives.health - 1);
 
 		obstacleUpdate();
 
@@ -120,11 +157,13 @@ class PlayState extends FlxState
 				sndStretch.pause();
 
 				kissing.screenCenter(X);
-				kissing.y = personL.y;
+
 				FlxG.camera.scroll.y = kissing.y + 20;
 
 				if (!isKissing)
 				{
+					kissing.y = personL.y;
+
 					var daObstacle:Obstacle = null;
 
 					var endTimer:Float = 0.9;
@@ -143,16 +182,24 @@ class PlayState extends FlxState
 						switch (daObstacle.obType)
 						{
 							case FULP:
+								score += 100;
 								kissing.animation.play("tom");
 								daObstacle.kill();
 								FlxG.sound.play('assets/sounds/sfx_TOMFULP.ogg');
 								endTimer = 1.7;
 							case CHEESE:
+								sprLives.health -= 1;
+
+								FlxFlicker.flicker(sprLives, 2, 0.02, true);
+
 								FlxG.sound.play('assets/sounds/sfx_rats.ogg');
 
 								kissing.animation.play("cheese");
 								daObstacle.kill();
 							case BOMB:
+								sprLives.health -= 1;
+								FlxFlicker.flicker(sprLives, 2, 0.02, true);
+
 								FlxG.sound.play('assets/sounds/sfx_bombxplode.ogg');
 
 								kissing.animation.play("bomb");
@@ -163,18 +210,24 @@ class PlayState extends FlxState
 					{
 						if (personL.y < personR.y - 20)
 						{
+							score += 100;
+
 							kissing.animation.play("head");
 							FlxG.sound.play("assets/sounds/sfx_kiss_headding.ogg");
 							FlxG.sound.play("assets/sounds/sfx_kiss_default.ogg");
 						}
 						else if (personL.y > personR.y + 20)
 						{
+							score += 500;
+
 							kissing.animation.play("body");
 							FlxG.sound.play("assets/sounds/sfx_kiss_default.ogg");
 							FlxG.sound.play("assets/sounds/sfx_kiss_neckscream.ogg");
 						}
 						else
 						{
+							score += 1000;
+
 							kissing.animation.play("idle");
 							FlxG.sound.play("assets/sounds/sfx_kiss_onlips.ogg");
 						}

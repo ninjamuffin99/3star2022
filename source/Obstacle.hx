@@ -33,7 +33,7 @@ class Obstacle extends FlxSprite
 				acceleration.y = 300;
 				velocity.x = facing == LEFT ? 120 : -120;
 				drag.x = FlxG.random.float(0, 50);
-				velocity.y = FlxG.random.float(-100, -310);
+				velocity.y = FlxG.random.float(-140, -310);
 
 			case BOMB:
 				loadGraphic('assets/images/bomb.png', true, 60, 46);
@@ -44,9 +44,9 @@ class Obstacle extends FlxSprite
 				y = FlxG.height * FlxG.random.float(0.3, 1);
 
 				acceleration.y = 300;
-				velocity.x = facing == LEFT ? 160 : -160;
+				velocity.x = facing == LEFT ? 120 : -120;
 				drag.x = FlxG.random.float(0, 50);
-				velocity.y = FlxG.random.float(-100, -310);
+				velocity.y = FlxG.random.float(-180, -330);
 
 				angularVelocity = FlxG.random.float(360, -360);
 
