@@ -10,15 +10,46 @@ import flixel.util.FlxTimer;
 class Obstacle extends FlxSprite
 {
 	public var obType:ObstacleType;
+	public var rndObj:Array<ObstacleType> = [CHEESE, FULP, BOMB];
 
-	public function new(obType:ObstacleType)
+	public function new()
 	{
 		super();
 
-		this.obType = obType;
+		this.obType = FlxG.random.getObject(rndObj);
+
+		facing = FlxG.random.bool() ? LEFT : RIGHT;
 
 		switch (obType)
 		{
+			case CHEESE:
+				loadGraphic("assets/images/cheese.png", true, 60, 37);
+				animation.add("idle", [0, 1, 2], 6);
+				animation.play("idle");
+
+				x = facing == LEFT ? -width : FlxG.width;
+				y = FlxG.height * FlxG.random.float(0.3, 1);
+
+				acceleration.y = 300;
+				velocity.x = facing == LEFT ? 120 : -120;
+				drag.x = FlxG.random.float(0, 50);
+				velocity.y = FlxG.random.float(-100, -310);
+
+			case BOMB:
+				loadGraphic('assets/images/bomb.png', true, 60, 46);
+				animation.add("idle", [0, 1, 2], 6);
+				animation.play("idle");
+
+				x = facing == LEFT ? -width : FlxG.width;
+				y = FlxG.height * FlxG.random.float(0.3, 1);
+
+				acceleration.y = 300;
+				velocity.x = facing == LEFT ? 160 : -160;
+				drag.x = FlxG.random.float(0, 50);
+				velocity.y = FlxG.random.float(-100, -310);
+
+				angularVelocity = FlxG.random.float(360, -360);
+
 			case FULP:
 				loadGraphic("assets/images/fulp.png");
 				x = FlxG.random.bool() ? -width : FlxG.width;
@@ -47,9 +78,19 @@ class Obstacle extends FlxSprite
 			FlxG.random.getObject(rndFuncs)();
 		});
 	}
+
+	override function update(elapsed:Float)
+	{
+		if ((obType == CHEESE || obType == BOMB) && y >= FlxG.height)
+			kill();
+
+		super.update(elapsed);
+	}
 }
 
 enum ObstacleType
 {
 	FULP;
+	CHEESE;
+	BOMB;
 }

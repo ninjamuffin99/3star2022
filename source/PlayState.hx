@@ -26,7 +26,8 @@ class PlayState extends FlxState
 
 	override public function create()
 	{
-		FlxG.sound.playMusic("assets/music/kissykiss.ogg", 0.5);
+		if (FlxG.sound.music == null)
+			FlxG.sound.playMusic("assets/music/kissykiss.ogg", 0.5);
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic("assets/images/bg" + FlxG.random.int(1, 3) + ".png", true, 300, 177);
 		bg.animation.add("idle", [0, 1, 2], 6);
@@ -135,7 +136,9 @@ class PlayState extends FlxState
 							daObstacle = obstacle;
 					});
 
-					if (daObstacle != null)
+					if (daObstacle != null
+						&& daObstacle.getGraphicMidpoint().x > FlxG.width * 0.35
+						&& daObstacle.getGraphicMidpoint().x < FlxG.width * 0.65)
 					{
 						switch (daObstacle.obType)
 						{
@@ -144,6 +147,16 @@ class PlayState extends FlxState
 								daObstacle.kill();
 								FlxG.sound.play('assets/sounds/sfx_TOMFULP.ogg');
 								endTimer = 1.7;
+							case CHEESE:
+								FlxG.sound.play('assets/sounds/sfx_rats.ogg');
+
+								kissing.animation.play("cheese");
+								daObstacle.kill();
+							case BOMB:
+								FlxG.sound.play('assets/sounds/sfx_bombxplode.ogg');
+
+								kissing.animation.play("bomb");
+								daObstacle.kill();
 						}
 					}
 					else
@@ -195,7 +208,7 @@ class PlayState extends FlxState
 
 		if (obstacleTmr >= rndObCheck)
 		{
-			var obstacle:Obstacle = new Obstacle(FULP);
+			var obstacle:Obstacle = new Obstacle();
 			obstacleGrp.add(obstacle);
 
 			obstacleTmr = 0;
