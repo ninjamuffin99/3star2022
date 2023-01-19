@@ -1,4 +1,4 @@
-
+#SIG7 is a big simp.
 name: Mac OS Build
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
       - name: Restore existing build cache for faster compilation
         uses: actions/cache@v3
         with:
-          # not caching the bin folder to prevent asset duplication and stuff like that
+          # wha?
           key: cache-build-mac
           path: |
             .haxelib/
@@ -26,6 +26,14 @@ jobs:
             cache-build-mac
       - name: Installing/Updating libraries
         run: |
+          haxelib install lime 7.9.0
+          haxelib install openfl
+          haxelib install flixel
+          haxelib run lime setup flixel
+          haxelib run lime setup
+          haxelib install flixel-tools
+          haxelib install flixel-addons
+          haxelib install flixel-ui
           haxe -cp ./update -D analyzer-optimize -main Update --interp
       - name: Building the game
         run: |
